@@ -5,6 +5,8 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
+import com.google.android.gms.maps.model.LatLng;
+
 /**
  * Created by jacop on 08/11/2017.
  */
@@ -21,16 +23,20 @@ import android.arch.persistence.room.PrimaryKey;
 public class Point {
 
     @PrimaryKey(autoGenerate = true)
-    public int id;
-    public int path;
+    public long id;
+    public long path;
     public double lat;
     public double lon;
     public long timestamp;
 
-    public Point(int path, double lat, double lon, long timestamp) {
+    public Point(long path, double lat, double lon, long timestamp) {
         this.path = path;
         this.lat = lat;
         this.lon = lon;
         this.timestamp = timestamp;
+    }
+
+    public LatLng getLatLng(){
+        return new LatLng(lat, lon);
     }
 }

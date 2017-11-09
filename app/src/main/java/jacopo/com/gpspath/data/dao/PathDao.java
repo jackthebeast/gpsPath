@@ -16,11 +16,14 @@ import jacopo.com.gpspath.data.model.Path;
 public interface PathDao {
 
     @Insert
-    public void add(Path path);
+    public long add(Path path);
 
     @Query("select * from path")
     public List<Path> getAll();
 
     @Query("select * from path where id = :id")
     public Path get(int id);
+
+    @Query("delete from path")
+    public void clearTable();
 }

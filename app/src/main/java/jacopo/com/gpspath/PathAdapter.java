@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -17,9 +18,11 @@ import jacopo.com.gpspath.data.model.Path;
 public class PathAdapter extends RecyclerView.Adapter<PathAdapter.PathViewHolder>{
 
     private List<Path> paths;
+    private View.OnClickListener clickListener;
 
-    public PathAdapter(List<Path> list){
+    public PathAdapter(List<Path> list, View.OnClickListener clickListener){
         paths = list;
+        this.clickListener = clickListener;
     }
 
     public class PathViewHolder extends RecyclerView.ViewHolder{
@@ -39,7 +42,7 @@ public class PathAdapter extends RecyclerView.Adapter<PathAdapter.PathViewHolder
     public PathViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_path, parent, false);
-
+        itemView.setOnClickListener(clickListener);
         return new PathViewHolder(itemView);
     }
 
@@ -49,6 +52,7 @@ public class PathAdapter extends RecyclerView.Adapter<PathAdapter.PathViewHolder
         holder.id.setText(movie.getIdString());
         holder.start.setText(movie.getStartFormatted());
         holder.end.setText(movie.getEndFormatted());
+
     }
 
     @Override

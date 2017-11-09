@@ -16,10 +16,11 @@ import jacopo.com.gpspath.data.model.Point;
 public interface PointDao {
 
     @Insert
-    public void add(Point point);
+    public long add(Point point);
 
-    @Query("select * from point where path = :pathId")
-    public List<Point> getPointsPerPath(int pathId);
+    @Query("select * from point where path = :pathId order by timestamp asc")
+    public List<Point> getPointsPerPath(long pathId);
 
-
+    @Query("delete from point")
+    public void clearTable();
 }

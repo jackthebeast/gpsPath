@@ -12,22 +12,43 @@ import jacopo.com.gpspath.data.model.Point;
 public abstract class DummyPathProvider {
 
     public static void generateDummyData(MapDatabase database){
-        database.query("delete from point", null);
-        database.query("delete from path", null);
+        database.pointDao().clearTable();
+        database.pathDao().clearTable();
 
-        // add some data
-        List<Path> paths = database.pathDao().getAll();
-        if (paths.size()==0) {
-            database.pathDao().add(new Path(2342343, 342335324));
-            database.pathDao().add(new Path( 2342343, 342335324));
-            paths = database.pathDao().getAll();
-            Path path = paths.get(0);
+        long newId = database.pathDao().add(new Path(1510213649, 1510253649));
 
-            Point point = new Point(path.id, 43.344, 12.1233, 23124234);
-            database.pointDao().add(point);
+        addHomePathPoints(database, newId);
+
+        newId = database.pathDao().add(new Path( 1510313649, 1510353649));
+
+        addColosseoPathPoints(database, newId);
 
 
-        }
+    }
 
+    private static void addHomePathPoints(MapDatabase database, long pathId){
+        Point newPoint = new Point(pathId, 41.853387, 12.479164, 1510213649);
+        database.pointDao().add(newPoint);
+        newPoint = new Point(pathId, 41.854261, 12.479393, 1510223649);
+        database.pointDao().add(newPoint);
+        newPoint = new Point(pathId, 41.854166, 12.479878, 1510233649);
+        database.pointDao().add(newPoint);
+        newPoint = new Point(pathId, 41.854328, 12.479980, 1510243649);
+        database.pointDao().add(newPoint);
+        newPoint = new Point(pathId, 41.854461, 12.480376, 1510253649);
+        database.pointDao().add(newPoint);
+    }
+
+    private static void addColosseoPathPoints(MapDatabase database, long pathId){
+        Point newPoint = new Point(pathId, 41.891455, 12.491596, 1510313649);
+        database.pointDao().add(newPoint);
+        newPoint = new Point(pathId, 41.890564, 12.491151, 1510323649);
+        database.pointDao().add(newPoint);
+        newPoint = new Point(pathId, 41.889706, 12.491466, 1510333649);
+        database.pointDao().add(newPoint);
+        newPoint = new Point(pathId, 41.889451, 12.492785, 1510343649);
+        database.pointDao().add(newPoint);
+        newPoint = new Point(pathId, 41.889921, 12.493500, 1510353649);
+        database.pointDao().add(newPoint);
     }
 }
