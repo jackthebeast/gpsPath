@@ -1,5 +1,8 @@
 package jacopo.com.gpspath;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,7 +10,8 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,20 +30,25 @@ import jacopo.com.gpspath.data.MapDatabase;
 import jacopo.com.gpspath.data.model.Path;
 import jacopo.com.gpspath.data.model.Point;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, CompoundButton.OnCheckedChangeListener{
 
     private GoogleMap map;
     private MapDatabase database;
     private RecyclerView pathsList;
     private PathAdapter pathAdapter;
     private List<Path> paths;
+    private Switch trackingSwitch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION},0);
+
         initializeMap();
+
+        PositionTrackService.start(getApplicationContext());
 
         database = MapDatabase.getDatabase(getApplicationContext());
 
@@ -57,7 +66,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         pathsList.setAdapter(pathAdapter);
 
 
-        return;
+        trackingSwitch = (Switch) findViewById(R.id.tracking_switch);
+        trackingSwitch.setOnCheckedChangeListener(this);
+
     }
 
 
@@ -65,6 +76,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onClick(final View view) {
         int itemPosition = pathsList.getChildLayoutPosition(view);
         showPathOnMap(paths.get(itemPosition));
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        String action = "";
+        if(isChecked)
+            action = PositionTrackService.START_TRACKING_ACTION;
+        else
+            action = PositionTrackService.STOP_TRACKING_ACTION;
+
+        Intent intent = new Intent(action);
+        sendBroadcast(intent);
     }
 
     private void showPathOnMap(Path path) {
@@ -94,6 +117,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (map == null) {
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             mapFragment.getMapAsync(this);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 01: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                } else {
+                    //TODO disable components
+                }
+                return;
+            }
         }
     }
 

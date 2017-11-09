@@ -3,6 +3,7 @@ package jacopo.com.gpspath.data.dao;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
 
 import java.util.List;
 
@@ -26,4 +27,7 @@ public interface PathDao {
 
     @Query("delete from path")
     public void clearTable();
+
+    @Update
+    public void update(Path path);
 }

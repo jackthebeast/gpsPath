@@ -21,10 +21,12 @@ public class Path {
     public long id;
     public long timeStart;
     public long timeEnd;
+    public boolean isOpen;
 
-    public Path( long timeStart, long timeEnd) {
+    public Path( long timeStart, long timeEnd, boolean isOpen) {
         this.timeStart = timeStart;
         this.timeEnd = timeEnd;
+        this.isOpen = isOpen;
     }
 
     public String getIdString() {
