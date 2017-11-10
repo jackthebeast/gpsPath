@@ -48,11 +48,15 @@ public class PathAdapter extends RecyclerView.Adapter<PathAdapter.PathViewHolder
 
     @Override
     public void onBindViewHolder(PathViewHolder holder, int position) {
-        Path movie = paths.get(position);
-        holder.id.setText(movie.getIdString());
-        holder.start.setText(movie.getStartFormatted());
-        holder.end.setText(movie.getEndFormatted());
+        Path path = paths.get(position);
+        holder.id.setText(path.getIdString());
+        holder.start.setText(path.getStartFormatted());
+        holder.end.setText(path.getEndFormatted());
 
+    }
+
+    public void updateList(List<Path> list){
+        paths = list;
     }
 
     @Override

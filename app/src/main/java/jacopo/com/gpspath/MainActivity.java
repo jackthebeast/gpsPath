@@ -1,7 +1,10 @@
 package jacopo.com.gpspath;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
@@ -9,9 +12,11 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -32,6 +37,7 @@ import jacopo.com.gpspath.data.model.Point;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, CompoundButton.OnCheckedChangeListener{
 
+    public static final String UPDATE_UI = "UPDATE_UI";
     private GoogleMap map;
     private MapDatabase database;
     private RecyclerView pathsList;
@@ -52,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         database = MapDatabase.getDatabase(getApplicationContext());
 
-        DummyPathProvider.generateDummyData(database);
+        //DummyPathProvider.generateDummyData(database);
 
         paths = database.pathDao().getAll();
 
@@ -69,11 +75,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         trackingSwitch = (Switch) findViewById(R.id.tracking_switch);
         trackingSwitch.setOnCheckedChangeListener(this);
 
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(UPDATE_UI);
+
+        registerReceiver(receiver, filter);
+
+    }
+
+    private void updateUI(){
+        paths = database.pathDao().getAll();
+        pathAdapter.updateList(paths);
+        pathAdapter.notifyDataSetChanged();
+
+        Path openPath = database.pathDao().getOpenedPath(true);
+        if(openPath != null)
+            showPathOnMap(openPath);
     }
 
 
     @Override
     public void onClick(final View view) {
+        if(trackingSwitch.isChecked()){
+            Toast.makeText(this, "Stop tracking to plot other paths", Toast.LENGTH_LONG).show();
+            return;
+        }
         int itemPosition = pathsList.getChildLayoutPosition(view);
         showPathOnMap(paths.get(itemPosition));
     }
@@ -101,10 +126,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         for(int i = 1; i<points.size(); i++){
             LatLng start = points.get(i-1).getLatLng();
             LatLng end =  points.get(i).getLatLng();
-            Polyline line = map.addPolyline(new PolylineOptions()
-                    .add(start, end)
-                    .width(5)
-                    .color(Color.BLUE));
+
+            PolylineOptions polyOpt = new PolylineOptions();
+            polyOpt.add(start, end);
+            polyOpt.width(8);
+
+            if(path.isOpen)
+                polyOpt.color(Color.RED);
+            else
+                polyOpt.color(Color.BLUE);
+
+            map.addPolyline(polyOpt);
         }
 
         LatLngBounds bounds = Path.computeBoundingBox(points);
@@ -112,6 +144,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         map.animateCamera(cu);
 
     }
+
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("ACTIVITY", "onReceive: "+intent.getAction());
+            String action = intent.getAction();
+            if(action.equals(UPDATE_UI)){
+                updateUI();
+            }
+        }
+    };
 
     protected synchronized void initializeMap() {
         if (map == null) {
@@ -139,5 +182,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        try {
+            map.setMyLocationEnabled(true);
+        }catch (SecurityException ex){
+            Toast.makeText(this, "Location permission not granted!", Toast.LENGTH_LONG).show();
+        }
     }
 }

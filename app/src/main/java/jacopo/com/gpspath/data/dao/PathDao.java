@@ -30,4 +30,7 @@ public interface PathDao {
 
     @Update
     public void update(Path path);
+
+    @Query("select * from path where isOpen = :isOpen")
+    public Path getOpenedPath(boolean isOpen);
 }

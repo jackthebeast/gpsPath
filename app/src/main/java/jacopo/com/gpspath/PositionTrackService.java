@@ -55,11 +55,12 @@ public class PositionTrackService extends Service {
         Log.d("SERVICE", "stopTracking");
 
         path.isOpen = false;
+        path.timeEnd = System.currentTimeMillis();
         database.pathDao().update(path);
 
         locationClient.removeLocationUpdates(locationCallback);
 
-        //TODO send update UI broadcast
+        sendUpdateUIBroadcast();
     }
 
     private void startTracking(){
@@ -81,7 +82,7 @@ public class PositionTrackService extends Service {
 
         locationClient.requestLocationUpdates(request,locationCallback, null);
 
-        //TODO send update UI broadcast
+        sendUpdateUIBroadcast();
     }
 
     private void addPoint(Location location) {
@@ -90,7 +91,12 @@ public class PositionTrackService extends Service {
 
         database.pointDao().add(point);
 
-        //TODO send update UI broadcast
+        sendUpdateUIBroadcast();
+    }
+
+    private void sendUpdateUIBroadcast(){
+        Intent intent = new Intent( MainActivity.UPDATE_UI);
+        sendBroadcast(intent);
     }
 
     private void initDatabase(){

@@ -43,6 +43,8 @@ public class Path {
     }
 
     public String getEndFormatted() {
+        if(timeEnd == 0)
+            return "ongoing";
         return formatTimestamp(timeEnd);
     }
 
