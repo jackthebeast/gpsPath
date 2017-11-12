@@ -30,6 +30,8 @@ public class PositionTrackService extends Service {
     public static final String START_TRACKING_ACTION = "jacopo.com.gpspath.START_TRACKING";
     public static final String STOP_TRACKING_ACTION = "jacopo.com.gpspath.STOP_TRACKING";
 
+    public static boolean isTracking = false;
+
     private MapDatabase database;
     private FusedLocationProviderClient locationClient;
     private Path path;
@@ -48,6 +50,11 @@ public class PositionTrackService extends Service {
 
         locationClient = new FusedLocationProviderClient(getApplicationContext());
 
+        path = database.pathDao().getOpenedPath(true);
+        if(path != null){
+            resumeTracking();
+        }
+
         return Service.START_STICKY;
     }
 
@@ -59,6 +66,8 @@ public class PositionTrackService extends Service {
         database.pathDao().update(path);
 
         locationClient.removeLocationUpdates(locationCallback);
+
+        isTracking = false;
 
         sendUpdateUIBroadcast();
     }
@@ -73,16 +82,37 @@ public class PositionTrackService extends Service {
         path = new Path(System.currentTimeMillis(), 0, true);
         path.id = database.pathDao().add(path);
 
+        setupLocationUpdates();
+
+        isTracking = true;
+
+        sendUpdateUIBroadcast();
+    }
+
+    private void resumeTracking(){
+        if(!checkLocationPermission()) {
+            Log.d("SERVICE", "no permission granted");
+            return;
+        }
+
+        Log.d("SERVICE", "resumeTracking");
+
+        setupLocationUpdates();
+
+        isTracking = true;
+
+        sendUpdateUIBroadcast();
+    }
+
+    private void setupLocationUpdates(){
         LocationRequest request = LocationRequest.create();
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         request.setFastestInterval(0);
         request.setInterval(5000);
-        request.setSmallestDisplacement(25);
+        request.setSmallestDisplacement(10);
 
 
         locationClient.requestLocationUpdates(request,locationCallback, null);
-
-        sendUpdateUIBroadcast();
     }
 
     private void addPoint(Location location) {
@@ -144,6 +174,7 @@ public class PositionTrackService extends Service {
 
     @Override
     public void onDestroy(){
+        locationClient.removeLocationUpdates(locationCallback);
         unregisterReceiver(receiver);
     }
 

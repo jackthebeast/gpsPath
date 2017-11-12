@@ -26,7 +26,7 @@ public abstract class MapDatabase  extends RoomDatabase {
         if (INSTANCE == null) {
             INSTANCE =
                     Room.databaseBuilder(context, MapDatabase.class, "database")
-                            .allowMainThreadQueries()   //TODO move to background
+                            .allowMainThreadQueries()
                             .fallbackToDestructiveMigration()
                             .build();
         }

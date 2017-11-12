@@ -15,11 +15,11 @@ public abstract class DummyPathProvider {
         database.pointDao().clearTable();
         database.pathDao().clearTable();
 
-        long newId = database.pathDao().add(new Path(1510213649, 1510253649, false));
+        long newId = database.pathDao().add(new Path(1510253649000L, 1510477500000L, false));
 
         addHomePathPoints(database, newId);
 
-        newId = database.pathDao().add(new Path( 1510313649, 1510353649, false));
+        newId = database.pathDao().add(new Path( 1510313649000L, 1510353649000L, false));
 
         addColosseoPathPoints(database, newId);
 

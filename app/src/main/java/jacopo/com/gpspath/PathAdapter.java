@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import jacopo.com.gpspath.data.MapDatabase;
 import jacopo.com.gpspath.data.model.Path;
 
 /**
@@ -17,24 +18,30 @@ import jacopo.com.gpspath.data.model.Path;
 
 public class PathAdapter extends RecyclerView.Adapter<PathAdapter.PathViewHolder>{
 
+    private final MapDatabase database;
     private List<Path> paths;
     private View.OnClickListener clickListener;
 
-    public PathAdapter(List<Path> list, View.OnClickListener clickListener){
+    public PathAdapter(List<Path> list, View.OnClickListener clickListener, MapDatabase database){
         paths = list;
         this.clickListener = clickListener;
+        this.database = database;
     }
 
     public class PathViewHolder extends RecyclerView.ViewHolder{
         public TextView id;
         public TextView end;
         public TextView start;
+        public TextView distance;
+        public TextView time;
 
         public PathViewHolder(View v){
             super(v);
             id = (TextView) v.findViewById(R.id.path_id);
             start = (TextView) v.findViewById(R.id.path_start);
             end = (TextView) v.findViewById(R.id.path_end);
+            distance = (TextView) v.findViewById(R.id.path_distance);
+            time = (TextView) v.findViewById(R.id.path_time);
         }
     }
 
@@ -53,6 +60,15 @@ public class PathAdapter extends RecyclerView.Adapter<PathAdapter.PathViewHolder
         holder.start.setText(path.getStartFormatted());
         holder.end.setText(path.getEndFormatted());
 
+        double d = path.getDistance(database);
+        if(d!=-1)
+            if(d<1000){
+                holder.distance.setText(String.format("%.2f", d) + " m");
+            }else{
+                holder.distance.setText(String.format("%.2f", d/1000) + " km");
+            }
+
+        holder.time.setText(path.getDuration());
     }
 
     public void updateList(List<Path> list){

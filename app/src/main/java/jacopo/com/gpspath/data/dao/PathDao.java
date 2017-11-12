@@ -19,7 +19,7 @@ public interface PathDao {
     @Insert
     public long add(Path path);
 
-    @Query("select * from path")
+    @Query("select * from path order by id desc")
     public List<Path> getAll();
 
     @Query("select * from path where id = :id")

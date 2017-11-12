@@ -25,7 +25,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.List;
@@ -64,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         pathsList = (RecyclerView) findViewById(R.id.path_list);
 
-        pathAdapter = new PathAdapter(paths, this);
+        pathAdapter = new PathAdapter(paths, this, database);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         pathsList.setLayoutManager(layoutManager);
         pathsList.setItemAnimator(new DefaultItemAnimator());
@@ -73,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         trackingSwitch = (Switch) findViewById(R.id.tracking_switch);
+        trackingSwitch.setChecked(PositionTrackService.isTracking);
         trackingSwitch.setOnCheckedChangeListener(this);
 
         IntentFilter filter = new IntentFilter();
@@ -88,8 +88,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         pathAdapter.notifyDataSetChanged();
 
         Path openPath = database.pathDao().getOpenedPath(true);
-        if(openPath != null)
+        if(openPath != null) {
             showPathOnMap(openPath);
+        }else{
+            if (paths != null && paths.size()!=0 && paths.get(0)!=null)
+            showPathOnMap(paths.get(0));
+        }
     }
 
 
@@ -120,8 +124,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         map.clear();
 
-        if(points.size()<2)
+        if(points.size()==1){
+            CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(new LatLng(points.get(0).lat, points.get(0).lon), 15);
+            map.animateCamera(cu);
             return;
+        }
+
 
         for(int i = 1; i<points.size(); i++){
             LatLng start = points.get(i-1).getLatLng();
@@ -140,9 +148,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         LatLngBounds bounds = Path.computeBoundingBox(points);
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, 100);
-        map.animateCamera(cu);
-
+        if(bounds != null) {
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, 100);
+            map.animateCamera(cu);
+        }
     }
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -166,12 +175,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case 01: {
+            case 0: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                } else {
-                    //TODO disable components
+                    map.setMyLocationEnabled(true);
                 }
                 return;
             }
@@ -185,7 +192,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             map.setMyLocationEnabled(true);
         }catch (SecurityException ex){
-            Toast.makeText(this, "Location permission not granted!", Toast.LENGTH_LONG).show();
+
         }
+    }
+
+    protected void onPause() {
+        super.onPause();
+
+        unregisterReceiver(receiver);
+    }
+
+    protected void onResume() {
+        super.onResume();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(UPDATE_UI);
+
+        registerReceiver(receiver, filter);
     }
 }

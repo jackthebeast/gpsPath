@@ -4,6 +4,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
+import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -38,5 +39,12 @@ public class Point {
 
     public LatLng getLatLng(){
         return new LatLng(lat, lon);
+    }
+
+    public Location getLocation(String name){
+        Location location = new Location(name);
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        return location;
     }
 }
